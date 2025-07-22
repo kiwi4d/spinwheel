@@ -17,6 +17,17 @@
       overflow: hidden;
       position: relative;
     }
+    /* Overlay for popups */
+    .overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 19;
+      display: none;
+    }
+    .overlay.show {
+      display: block;
+    }
     /* Popup */
     #popup, #resultPopup {
       position: fixed;
@@ -25,104 +36,148 @@
       transform: translate(-50%, -50%);
       background: white;
       color: #333;
-      padding: 30px;
+      padding: 30px 35px;
       width: 400px;
+      max-width: 90vw;
       border-radius: 8px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      box-shadow: 0 0 30px rgba(0,0,0,0.6);
       text-align: center;
       z-index: 20;
       display: none;
+      user-select: none;
     }
     #popup.show, #resultPopup.show {
       display: block;
     }
     #popup h2, #resultPopup h2 {
       margin-top: 0;
-      font-size: 24px;
+      font-size: 26px;
+      font-weight: 700;
+      color: #b8860b;
+      text-shadow: 0 0 5px #d4af37;
     }
     #popup p, #resultPopup p {
       font-size: 16px;
-      line-height: 1.4;
+      line-height: 1.5;
+      margin-top: 15px;
+      color: #444;
     }
     #popup button, #resultPopup button {
-      margin-top: 20px;
-      background-color: #cba032;
+      margin-top: 25px;
+      background-color: #b8860b;
       border: none;
-      padding: 10px 25px;
-      font-weight: bold;
+      padding: 12px 30px;
+      font-weight: 700;
       color: white;
       cursor: pointer;
-      border-radius: 4px;
-      font-size: 16px;
+      border-radius: 30px;
+      font-size: 17px;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 0 10px #d4af37;
+    }
+    #popup button:hover, #resultPopup button:hover {
+      background-color: #d4af37;
     }
     /* Form container (kanan atas) */
     .form-container {
       position: fixed;
       top: 70px;
       right: 50px;
-      width: 300px;
+      width: 320px;
       z-index: 10;
       text-align: center;
-      background: rgba(0,0,0,0.6);
-      padding: 20px;
-      border-radius: 10px;
+      background: rgba(0,0,0,0.7);
+      padding: 25px 20px 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px #000;
+      user-select: none;
     }
     .form-container img {
       width: 180px;
-      margin-bottom: 15px;
+      margin-bottom: 18px;
+      filter: drop-shadow(0 0 5px #b8860b);
     }
     .form-container label {
       display: block;
-      margin-bottom: 8px;
-      font-weight: normal;
+      margin-bottom: 6px;
+      font-weight: 600;
       font-size: 18px;
-      color: white;
+      color: #f3d37a;
       text-align: left;
+      text-shadow: 0 0 3px #a3751b;
     }
     .form-container input[type="text"] {
       width: 100%;
-      padding: 10px;
-      margin-bottom: 12px;
+      padding: 11px 12px;
+      margin-bottom: 15px;
       border: none;
-      border-radius: 6px;
-      font-size: 14px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 500;
+      outline: none;
+      transition: box-shadow 0.25s ease;
+      box-shadow: inset 0 0 6px #000000aa;
+    }
+    .form-container input[type="text"]:focus {
+      box-shadow: inset 0 0 8px #b8860b;
+      background-color: #fff9e8;
+      color: #000;
+      font-weight: 600;
+    }
+    .error-message {
+      color: #ff5555;
+      font-size: 13px;
+      margin-top: -12px;
+      margin-bottom: 12px;
+      text-align: left;
+      font-weight: 600;
+      display: none;
     }
     .btn {
       width: 140px;
-      padding: 10px 0;
-      margin: 5px 8px;
-      font-weight: bold;
-      font-size: 14px;
+      padding: 11px 0;
+      margin: 6px 8px;
+      font-weight: 700;
+      font-size: 15px;
       border: none;
-      border-radius: 20px;
+      border-radius: 22px;
       cursor: pointer;
       color: white;
       display: inline-block;
       user-select: none;
       transition: background-color 0.3s ease;
+      box-shadow: 0 0 10px #00000088;
     }
     .btn-gold {
       background-color: #b8860b;
+      box-shadow: 0 0 12px #d4af37;
     }
     .btn-gold:hover {
       background-color: #d4af37;
+      box-shadow: 0 0 18px #ffe66d;
     }
     .btn-blue {
       background-color: #0077b6;
+      box-shadow: 0 0 12px #0096c7;
     }
     .btn-blue:hover {
       background-color: #0096c7;
+      box-shadow: 0 0 16px #00b4f0;
     }
     #spinButton {
       width: 100%;
       margin-top: 15px;
       background-color: #0077b6;
-      border-radius: 25px;
-      font-size: 18px;
-      font-weight: bold;
+      border-radius: 30px;
+      font-size: 19px;
+      font-weight: 700;
+      box-shadow: 0 0 15px #0096c7;
+      transition: background-color 0.3s ease;
+      user-select: none;
     }
     #spinButton:disabled {
-      background-color: gray;
+      background-color: #444;
+      box-shadow: none;
       cursor: not-allowed;
     }
     /* Spin wheel container */
@@ -135,13 +190,14 @@
       width: 400px;
       height: 400px;
       user-select: none;
+      filter: drop-shadow(0 0 8px gold);
     }
     #wheel {
       width: 100%;
       height: 100%;
       border-radius: 50%;
-      border: 10px solid #cba032;
-      box-shadow: 0 0 15px gold;
+      border: 10px solid #b8860b;
+      box-shadow: 0 0 20px #d4af37;
       transition: transform 5s cubic-bezier(0.33, 1, 0.68, 1);
     }
     /* Pointer */
@@ -153,79 +209,139 @@
       height: 0;
       border-left: 25px solid transparent;
       border-right: 25px solid transparent;
-      border-bottom: 40px solid #cba032;
+      border-bottom: 40px solid #b8860b;
       transform: translateX(-50%);
       z-index: 20;
-      filter: drop-shadow(0 0 5px gold);
+      filter: drop-shadow(0 0 10px gold);
+      user-select: none;
+    }
+    /* Responsive */
+    @media (max-width: 480px) {
+      .form-container {
+        width: 90vw;
+        right: 50%;
+        transform: translateX(50%);
+        top: 20px;
+        padding: 15px 15px 20px;
+      }
+      #wheel-container {
+        width: 320px;
+        height: 320px;
+      }
+      #pointer {
+        top: calc(50% - 180px);
+        border-left: 20px solid transparent;
+        border-right: 20px solid transparent;
+        border-bottom: 32px solid #b8860b;
+      }
     }
   </style>
 </head>
 <body>
 
+  <!-- Overlay -->
+  <div id="overlay" class="overlay"></div>
+
   <!-- Popup welcome -->
-  <div id="popup" class="show">
-    <h2>Selamat Datang di Lucky Spin Wheels!!!</h2>
-    <p>
+  <div id="popup" class="show" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle" aria-describedby="welcomeDesc">
+    <h2 id="welcomeTitle">Selamat Datang di Lucky Spin Wheels!!!</h2>
+    <p id="welcomeDesc">
       Kami selaku pihak Lucky Spin Wheels terlebih dahulu mengucapkan selamat kepada setiap member yang memiliki tiket untuk berkesempatan memenangkan hadiah menarik yang ditawarkan di Lucky Spin Wheels Lucky Spin ini. Untuk kalian yang memiliki tiket silahkan masukkan ke kolom kode yang disediakan dan klik tombol spin untuk memulai peruntungan anda..!!!
     </p>
-    <button onclick="document.getElementById('popup').classList.remove('show')">Thank You</button>
+    <button aria-label="Tutup popup selamat datang" onclick="closePopup('popup')">Thank You</button>
   </div>
 
   <!-- Popup hasil -->
-  <div id="resultPopup">
-    <h2>Selamat!</h2>
-    <p id="resultText">Anda mendapatkan hadiah ...</p>
-    <button onclick="document.getElementById('resultPopup').classList.remove('show')">Tutup</button>
+  <div id="resultPopup" role="dialog" aria-modal="true" aria-labelledby="resultTitle" aria-describedby="resultDesc">
+    <h2 id="resultTitle">Selamat!</h2>
+    <p id="resultText" id="resultDesc">Anda mendapatkan hadiah ...</p>
+    <button aria-label="Tutup popup hasil" onclick="closePopup('resultPopup')">Tutup</button>
   </div>
 
   <!-- Form kanan atas -->
-  <div class="form-container">
+  <div class="form-container" role="form" aria-label="Form input username dan voucher">
     <img src="https://i.imgur.com/vcDzELV.png" alt="Logo KIWI4D" />
     <label for="username">Masukkan Username:</label>
-    <input type="text" id="username" placeholder="username" />
+    <input type="text" id="username" placeholder="username" aria-describedby="usernameError" autocomplete="off" />
+    <div id="usernameError" class="error-message">Username tidak boleh kosong.</div>
 
     <label for="voucher">Masukkan Kode Voucher:</label>
-    <input type="text" id="voucher" placeholder="voucher" />
+    <input type="text" id="voucher" placeholder="voucher" aria-describedby="voucherError" autocomplete="off" />
+    <div id="voucherError" class="error-message">Kode voucher tidak valid.</div>
 
-    <button class="btn btn-blue" id="spinButton" disabled>SPIN</button>
+    <button class="btn btn-blue" id="spinButton" disabled aria-disabled="true" aria-live="polite">SPIN</button>
 
-    <div style="margin-top: 20px;">
+    <div style="margin-top: 22px;">
       <button class="btn btn-gold" onclick="alert('Fitur Riwayat belum tersedia')">RIWAYAT</button>
       <button class="btn btn-gold" onclick="alert('Syarat & Ketentuan belum tersedia')">Syarat & Ketentuan</button>
     </div>
-    <div>
-      <button class="btn btn-blue" onclick="window.open('https://wa.me/82136893501','_blank')">Whatsapp Admin</button>
-      <button class="btn btn-blue" onclick="window.location.href='https://semutmerah.site'">KEMBALI KE SITUS</button>
+    <div style="margin-top: 10px;">
+      <button class="btn btn-blue" onclick="window.open('https://wa.me/82136893501','_blank')" aria-label="Hubungi Whatsapp Admin">Whatsapp Admin</button>
+      <button class="btn btn-blue" onclick="window.location.href='https://semutmerah.site'" aria-label="Kembali ke situs utama">KEMBALI KE SITUS</button>
     </div>
   </div>
 
   <!-- Spin wheel & pointer -->
-  <div id="wheel-container">
-    <canvas id="wheel" width="400" height="400"></canvas>
+  <div id="wheel-container" aria-label="Roda keberuntungan">
+    <canvas id="wheel" width="400" height="400" role="img" aria-label="Roda putar hadiah"></canvas>
   </div>
-  <div id="pointer"></div>
+  <div id="pointer" aria-hidden="true"></div>
 
 <script>
-  // Voucher & username validation
+  // Elements
   const validVouchers = ["ABC123", "KIWI2025", "LUCKY50", "SPINWIN", "VOUCHER99"];
   const voucherInput = document.getElementById("voucher");
   const usernameInput = document.getElementById("username");
   const spinButton = document.getElementById("spinButton");
+  const usernameError = document.getElementById("usernameError");
+  const voucherError = document.getElementById("voucherError");
+  const overlay = document.getElementById('overlay');
 
+  // Popup controls
+  function closePopup(id) {
+    document.getElementById(id).classList.remove('show');
+    overlay.classList.remove('show');
+  }
+  function openPopup(id) {
+    document.getElementById(id).classList.add('show');
+    overlay.classList.add('show');
+  }
+  // Close popup when clicking outside
+  overlay.addEventListener('click', () => {
+    if(document.getElementById('popup').classList.contains('show')) closePopup('popup');
+    if(document.getElementById('resultPopup').classList.contains('show')) closePopup('resultPopup');
+  });
+
+  // Validation function
   function validateInputs() {
     const voucherVal = voucherInput.value.trim().toUpperCase();
     const usernameVal = usernameInput.value.trim();
 
-    if (usernameVal !== "" && validVouchers.includes(voucherVal)) {
-      spinButton.disabled = false;
+    let valid = true;
+
+    // Username validation
+    if (usernameVal === "") {
+      usernameError.style.display = "block";
+      valid = false;
     } else {
-      spinButton.disabled = true;
+      usernameError.style.display = "none";
     }
+
+    // Voucher validation
+    if (!validVouchers.includes(voucherVal)) {
+      voucherError.style.display = "block";
+      valid = false;
+    } else {
+      voucherError.style.display = "none";
+    }
+
+    spinButton.disabled = !valid;
+    spinButton.setAttribute("aria-disabled", (!valid).toString());
   }
   voucherInput.addEventListener("input", validateInputs);
   usernameInput.addEventListener("input", validateInputs);
 
-  // Spin wheel setup
+  // Wheel setup
   const wheelCanvas = document.getElementById('wheel');
   const ctx = wheelCanvas.getContext('2d');
   const segments = [
@@ -255,7 +371,7 @@
       ctx.fillStyle = segments[i].color;
       ctx.moveTo(0, 0);
       ctx.arc(0, 0, radius, i * anglePerSegment, (i + 1) * anglePerSegment);
-      ctx.lineTo(0,0);
+      ctx.lineTo(0, 0);
       ctx.fill();
 
       // Draw text
@@ -266,42 +382,45 @@
       ctx.textBaseline = "middle";
       let textAngle = (i + 0.5) * anglePerSegment;
       ctx.rotate(textAngle);
-      ctx.fillText(segments[i].text, radius - 10, 0);
+      ctx.fillText(segments[i].text, radius - 12, 0);
       ctx.restore();
     }
     ctx.restore();
   }
   drawWheel();
 
+  // Spin animation with easing cubic out
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
+
   // Spin logic
   spinButton.addEventListener("click", () => {
     spinButton.disabled = true;
+    spinButton.setAttribute("aria-disabled", "true");
 
-    // Putar setidaknya 3-5 putaran + hasil acak
     let randomSegmentIndex = Math.floor(Math.random() * segmentCount);
-    let spins = 5; // Putaran penuh
+    let spins = 6; // Putaran penuh lebih banyak untuk efek lebih dramatis
     let finalAngle = (2 * Math.PI * spins) + (randomSegmentIndex * anglePerSegment) + anglePerSegment / 2;
 
-    // Animasi putar
     let start = null;
-    const duration = 5000; // 5 detik
+    const duration = 6000; // 6 detik animasi spin
 
     function animate(timestamp) {
       if (!start) start = timestamp;
       let elapsed = timestamp - start;
       let progress = Math.min(elapsed / duration, 1);
-      // easing cubic out
-      let easeProgress = 1 - Math.pow(1 - progress, 3);
+      let easedProgress = easeOutCubic(progress);
 
-      currentAngle = easeProgress * finalAngle;
+      currentAngle = easedProgress * finalAngle;
       drawWheel();
 
-      if(progress < 1) {
+      if (progress < 1) {
         requestAnimationFrame(animate);
       } else {
-        // Selesai putar
         showResult(randomSegmentIndex);
         spinButton.disabled = false;
+        spinButton.setAttribute("aria-disabled", "false");
       }
     }
     requestAnimationFrame(animate);
@@ -310,8 +429,11 @@
   function showResult(index) {
     const resultText = document.getElementById('resultText');
     resultText.textContent = `Anda mendapatkan hadiah: ${segments[index].text}`;
-    document.getElementById('resultPopup').classList.add('show');
+    openPopup('resultPopup');
   }
+
+  // Initialize validation check on load
+  validateInputs();
 </script>
 
 </body>
