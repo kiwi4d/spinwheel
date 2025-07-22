@@ -1,53 +1,201 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Spin Wheel Kiwi4D</title>
-  <style>
-    #wheel {
-      width: 300px;
-      height: 300px;
-      border-radius: 50%;
-      border: 10px solid #000;
-      margin: 40px auto;
-      background: conic-gradient(
-        red 0deg 60deg,
-        blue 60deg 120deg,
-        green 120deg 180deg,
-        yellow 180deg 240deg,
-        orange 240deg 300deg,
-        pink 300deg 360deg
-      );
-      transition: transform 4s cubic-bezier(0.33, 1, 0.68, 1);
-    }
-    #pointer {
-      width: 0;
-      height: 0;
-      border-left: 20px solid transparent;
-      border-right: 20px solid transparent;
-      border-bottom: 20px solid black;
-      margin: 0 auto;
-    }
-    #spinBtn {
-      display: block;
-      margin: 20px auto;
-      padding: 10px 20px;
-      font-size: 20px;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Spin Wheel KIWI4D</title>
+<style>
+  body {
+    font-family: 'Arial Black', sans-serif;
+    background: #e0f7e9;
+    text-align: center;
+    margin: 0; padding: 0;
+  }
+  h1 {
+    color: #4CAF50;
+    margin-top: 20px;
+    text-shadow: 1px 1px 2px #2e7d32;
+  }
+  #wheel {
+    margin: 20px auto;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    border: 8px solid #4CAF50;
+    position: relative;
+    box-shadow: 0 0 15px #66bb6a;
+  }
+  #spinBtn {
+    margin-top: 20px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    font-size: 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px #388e3c;
+  }
+  #spinBtn:active {
+    box-shadow: none;
+    transform: translateY(4px);
+  }
+  #pointer {
+    width: 0; height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-bottom: 30px solid #4CAF50;
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  /* Popup hadiah */
+  #popup {
+    display: none;
+    position: fixed;
+    background: rgba(0,0,0,0.7);
+    top: 0; left: 0; right: 0; bottom: 0;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+  }
+  #popup .content {
+    background: white;
+    padding: 30px 50px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px #4CAF50;
+    font-size: 24px;
+    color: #2e7d32;
+  }
+</style>
 </head>
 <body>
-  <div id="pointer"></div>
-  <div id="wheel"></div>
-  <button id="spinBtn">SPIN!</button>
 
-  <script>
-    const wheel = document.getElementById('wheel');
-    const btn = document.getElementById('spinBtn');
-    btn.addEventListener('click', () => {
-      let deg = Math.floor(1800 + Math.random() * 360);
-      wheel.style.transform = `rotate(${deg}deg)`;
-    });
-  </script>
+<h1>🎉 SPIN WHEEL KIWI4D 🎉</h1>
+<div id="wheel">
+  <canvas id="canvas" width="300" height="300"></canvas>
+  <div id="pointer"></div>
+</div>
+<button id="spinBtn">SPIN</button>
+
+<!-- Popup hadiah -->
+<div id="popup">
+  <div class="content" id="prizeText"></div>
+</div>
+
+<!-- Suara spin dan hadiah -->
+<audio id="soundSpin" src="https://actions.google.com/sounds/v1/sports/throw.ogg" preload="auto"></audio>
+<audio id="soundWin" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg" preload="auto"></audio>
+
+<script>
+  const prizes = [
+    "Hadiah Utama: Rp 1.000.000",
+    "Hadiah Kejutan: Voucher 50K",
+    "Hadiah Hiburan: Kaos KIWI4D",
+    "Hadiah Lucky Dip: Pulsa 10K",
+    "Hadiah Bonus: Snack Paket",
+    "Coba Lagi!"
+  ];
+
+  const colors = ["#66bb6a","#81c784","#a5d6a7","#4caf50","#388e3c","#2e7d32"];
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const wheelRadius = 150;
+  let startAngle = 0;
+  let spinTimeout = null;
+  let spinArcStart = 0;
+  let spinTime = 0;
+  let spinTimeTotal = 0;
+  const spinBtn = document.getElementById('spinBtn');
+  const popup = document.getElementById('popup');
+  const prizeText = document.getElementById('prizeText');
+  const soundSpin = document.getElementById('soundSpin');
+  const soundWin = document.getElementById('soundWin');
+
+  // Batas spin 5x per session (localStorage)
+  let spins = JSON.parse(localStorage.getItem('spinCount')) || 0;
+
+  function drawWheel() {
+    const arc = Math.PI / (prizes.length / 2);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for(let i = 0; i < prizes.length; i++) {
+      let angle = startAngle + i * arc;
+      ctx.fillStyle = colors[i % colors.length];
+      ctx.beginPath();
+      ctx.moveTo(wheelRadius, wheelRadius);
+      ctx.arc(wheelRadius, wheelRadius, wheelRadius, angle, angle + arc, false);
+      ctx.lineTo(wheelRadius, wheelRadius);
+      ctx.fill();
+
+      // teks hadiah
+      ctx.save();
+      ctx.fillStyle = "white";
+      ctx.translate(
+        wheelRadius + Math.cos(angle + arc / 2) * (wheelRadius - 40),
+        wheelRadius + Math.sin(angle + arc / 2) * (wheelRadius - 40)
+      );
+      ctx.rotate(angle + arc / 2 + Math.PI / 2);
+      ctx.font = 'bold 12px Arial';
+      ctx.fillText(prizes[i], -ctx.measureText(prizes[i]).width / 2, 0);
+      ctx.restore();
+    }
+  }
+
+  function spin() {
+    if(spins >= 5) {
+      alert("Maaf, batas spin Anda sudah habis (5x).");
+      return;
+    }
+    spinArcStart = Math.random() * 10 + 10;
+    spinTime = 0;
+    spinTimeTotal = Math.random() * 3000 + 4000;
+    rotateWheel();
+    spins++;
+    localStorage.setItem('spinCount', JSON.stringify(spins));
+  }
+
+  function rotateWheel() {
+    spinTime += 30;
+    if(spinTime >= spinTimeTotal) {
+      stopRotateWheel();
+      return;
+    }
+    let spinAngle = spinArcStart - easeOut(spinTime, 0, spinArcStart, spinTimeTotal);
+    startAngle += (spinAngle * Math.PI / 180);
+    drawWheel();
+    soundSpin.play();
+    spinTimeout = setTimeout(rotateWheel, 30);
+  }
+
+  function stopRotateWheel() {
+    clearTimeout(spinTimeout);
+    let degrees = startAngle * 180 / Math.PI + 90;
+    let arcd = 360 / prizes.length;
+    let index = Math.floor((360 - (degrees % 360)) / arcd);
+    showPrize(index);
+  }
+
+  function showPrize(index) {
+    prizeText.textContent = `Selamat! Anda mendapat: ${prizes[index]}`;
+    popup.style.display = 'flex';
+    soundWin.play();
+  }
+
+  function easeOut(t, b, c, d) {
+    let ts = (t/=d)*t;
+    let tc = ts*t;
+    return b+c*(tc + -3*ts + 3*t);
+  }
+
+  popup.addEventListener('click', () => {
+    popup.style.display = 'none';
+  });
+
+  spinBtn.addEventListener('click', spin);
+
+  drawWheel();
+</script>
+
 </body>
 </html>
