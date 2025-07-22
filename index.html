@@ -1,12 +1,53 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Spin Wheel KIWI4D</title>
+  <meta charset="UTF-8">
+  <title>Spin Wheel Kiwi4D</title>
+  <style>
+    #wheel {
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      border: 10px solid #000;
+      margin: 40px auto;
+      background: conic-gradient(
+        red 0deg 60deg,
+        blue 60deg 120deg,
+        green 120deg 180deg,
+        yellow 180deg 240deg,
+        orange 240deg 300deg,
+        pink 300deg 360deg
+      );
+      transition: transform 4s cubic-bezier(0.33, 1, 0.68, 1);
+    }
+    #pointer {
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-bottom: 20px solid black;
+      margin: 0 auto;
+    }
+    #spinBtn {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      font-size: 20px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Spin Wheel KIWI4D</h1>
-  <p>Ini adalah halaman web demo spin wheel kamu.</p>
+  <div id="pointer"></div>
+  <div id="wheel"></div>
+  <button id="spinBtn">SPIN!</button>
+
+  <script>
+    const wheel = document.getElementById('wheel');
+    const btn = document.getElementById('spinBtn');
+    btn.addEventListener('click', () => {
+      let deg = Math.floor(1800 + Math.random() * 360);
+      wheel.style.transform = `rotate(${deg}deg)`;
+    });
+  </script>
 </body>
 </html>
